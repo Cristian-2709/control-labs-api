@@ -3,3 +3,6 @@ package.json
 .env
 **/package.json
 **/.env
+node_modules/
+package.json
+.env
