@@ -1,0 +1,5 @@
+package.json
+.envpackage.json
+.env
+**/package.json
+**/.env
