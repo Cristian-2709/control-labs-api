@@ -3,6 +3,7 @@ const cors = require('cors');
 const userRoutes = require('./routes/user.routes').default;
 const environmentRoutes = require('./routes/environment.routes').default;
 const equipmentRoutes = require('./routes/gestionequipos.routers').default;
+const incidentRoutes = require('./routes/gestion-novedades.routers').default;
 
 const app = express();
 
@@ -26,5 +27,8 @@ app.use('/api/v1/environments', environmentRoutes);
 
 // Ruta de equipos
 app.use('/api/v1/equipos', equipmentRoutes);
+
+// Ruta de novedades
+app.use('/api/v1/novedades', incidentRoutes);
 
 module.exports = app; // Exportación corregida

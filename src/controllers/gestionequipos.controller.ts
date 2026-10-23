@@ -20,6 +20,9 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 const isTechnicalStatus = (value: unknown): value is TechnicalStatus =>
   value === 'operational' || value === 'maintenance' || value === 'out_of_service';
 
+export const equipmentExists = (id: string): boolean =>
+  equipmentList.some((equipment) => equipment.id === id);
+
 export class GestionEquiposController {
   public static getEquipment = (req: Request, res: Response): void => {
     const { environmentId } = req.query;
