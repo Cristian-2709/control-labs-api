@@ -4,6 +4,7 @@ const userRoutes = require('./routes/user.routes').default;
 const environmentRoutes = require('./routes/environment.routes').default;
 const equipmentRoutes = require('./routes/gestionequipos.routers').default;
 const incidentRoutes = require('./routes/gestion-novedades.routers').default;
+const dashboardRoutes = require('./routes/dashboard.routes').default;
 
 const app = express();
 
@@ -30,5 +31,8 @@ app.use('/api/v1/equipos', equipmentRoutes);
 
 // Ruta de novedades
 app.use('/api/v1/novedades', incidentRoutes);
+
+// Ruta del dashboard
+app.use('/api/v1/dashboard', dashboardRoutes);
 
 module.exports = app; // Exportación corregida

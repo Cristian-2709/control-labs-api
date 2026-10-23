@@ -23,6 +23,9 @@ const isTechnicalStatus = (value: unknown): value is TechnicalStatus =>
 export const equipmentExists = (id: string): boolean =>
   equipmentList.some((equipment) => equipment.id === id);
 
+export const getOperationalEquipmentCount = (): number =>
+  equipmentList.filter((equipment) => equipment.technicalStatus === 'operational').length;
+
 export class GestionEquiposController {
   public static getEquipment = (req: Request, res: Response): void => {
     const { environmentId } = req.query;

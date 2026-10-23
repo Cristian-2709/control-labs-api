@@ -17,6 +17,9 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 export const environmentExists = (id: string): boolean =>
   environments.some((environment) => environment.id === id);
 
+export const getActiveEnvironmentCount = (): number =>
+  environments.filter((environment) => environment.operational).length;
+
 export class EnvironmentController {
   public static getEnvironments = (_req: Request, res: Response): void => {
     res.status(200).json({

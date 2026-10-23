@@ -1,7 +1,8 @@
 import type { Request, Response } from 'express';
 
 export class UserController {
-    
+  public static getUserCount = (): number => 0;
+
   public static getUser = (req: Request, res: Response): void => {
     res.status(501).json({
       success: false,

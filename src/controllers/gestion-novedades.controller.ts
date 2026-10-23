@@ -3,11 +3,13 @@ import { environmentExists } from './environment.controller';
 import { equipmentExists } from './gestionequipos.controller';
 
 type IncidentStatus = 'pending' | 'in_progress' | 'resolved';
+type IncidentPriority = 'critical' | 'normal';
 
 interface Incident {
   id: string;
   description: string;
   status: IncidentStatus;
+  priority: IncidentPriority;
   reportedAt: string;
   equipmentId?: string;
   environmentId?: string;
@@ -21,6 +23,12 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 
 const isIncidentStatus = (value: unknown): value is IncidentStatus =>
   value === 'pending' || value === 'in_progress' || value === 'resolved';
+
+const isIncidentPriority = (value: unknown): value is IncidentPriority =>
+  value === 'critical' || value === 'normal';
+
+export const getUnresolvedCriticalIncidentCount = (): number =>
+  incidents.filter((incident) => incident.priority === 'critical' && incident.status !== 'resolved').length;
 
 export class GestionNovedadesController {
   public static getIncidents = (_req: Request, res: Response): void => {
@@ -41,7 +49,7 @@ export class GestionNovedadesController {
       return;
     }
 
-    const { description, equipmentId, environmentId } = body;
+    const { description, equipmentId, environmentId, priority } = body;
     const hasEquipmentId = typeof equipmentId === 'string' && equipmentId.trim().length > 0;
     const hasEnvironmentId = typeof environmentId === 'string' && environmentId.trim().length > 0;
 
@@ -50,11 +58,12 @@ export class GestionNovedadesController {
       description.trim().length === 0 ||
       hasEquipmentId === hasEnvironmentId ||
       (equipmentId !== undefined && !hasEquipmentId) ||
-      (environmentId !== undefined && !hasEnvironmentId)
+      (environmentId !== undefined && !hasEnvironmentId) ||
+      (priority !== undefined && !isIncidentPriority(priority))
     ) {
       res.status(400).json({
         success: false,
-        message: 'Indica una descripción y exactamente un equipmentId o environmentId válido.'
+        message: 'Indica una descripción, exactamente un equipmentId o environmentId válido y una prioridad critical o normal.'
       });
       return;
     }
@@ -79,6 +88,7 @@ export class GestionNovedadesController {
       id: String(nextId++),
       description: description.trim(),
       status: 'pending',
+      priority: isIncidentPriority(priority) ? priority : 'normal',
       reportedAt: new Date().toISOString(),
       ...(hasEquipmentId ? { equipmentId } : {}),
       ...(hasEnvironmentId ? { environmentId } : {})
