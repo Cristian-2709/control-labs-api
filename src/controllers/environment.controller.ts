@@ -14,9 +14,12 @@ let nextId = 1;
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
+export const environmentExists = (id: string): boolean =>
+  environments.some((environment) => environment.id === id);
+
 export class EnvironmentController {
   public static getEnvironments = (_req: Request, res: Response): void => {
-    res.status(501).json({
+    res.status(200).json({
       success: true,
       data: environments
     });
@@ -26,7 +29,7 @@ export class EnvironmentController {
     const body: unknown = req.body;
 
     if (!isRecord(body)) {
-      res.status(501).json({
+      res.status(400).json({
         success: false,
         message: 'El cuerpo de la solicitud debe ser un objeto.'
       });
@@ -45,7 +48,7 @@ export class EnvironmentController {
       location.trim().length === 0 ||
       (operational !== undefined && typeof operational !== 'boolean')
     ) {
-      res.status(501).json({
+      res.status(400).json({
         success: false,
         message: 'Indica un nombre, capacidad positiva, ubicación y un estado operativo válido.'
       });
@@ -62,7 +65,7 @@ export class EnvironmentController {
 
     environments.push(environment);
 
-    res.status(501).json({
+    res.status(201).json({
       success: true,
       data: environment
     });
@@ -73,7 +76,7 @@ export class EnvironmentController {
     const environmentIndex = environments.findIndex((environment) => environment.id === id);
 
     if (environmentIndex === -1) {
-      res.status(501).json({
+      res.status(404).json({
         success: false,
         message: `No se encontró el ambiente ${id}.`
       });
@@ -83,7 +86,7 @@ export class EnvironmentController {
     const body: unknown = req.body;
 
     if (!isRecord(body)) {
-      res.status(501).json({
+      res.status(400).json({
         success: false,
         message: 'El cuerpo de la solicitud debe ser un objeto.'
       });
@@ -101,7 +104,7 @@ export class EnvironmentController {
           body.capacity <= 0)) ||
       (body.operational !== undefined && typeof body.operational !== 'boolean')
     ) {
-      res.status(501).json({
+      res.status(404).json({
         success: false,
         message: 'Envía capacity como entero positivo y/o operational como valor booleano.'
       });
@@ -110,7 +113,7 @@ export class EnvironmentController {
 
     const currentEnvironment = environments[environmentIndex];
     if (!currentEnvironment) {
-      res.status(501).json({
+      res.status(200).json({
         success: false,
         message: `No se encontró el ambiente ${id}.`
       });
