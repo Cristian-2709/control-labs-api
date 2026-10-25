@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+import type { ICreateEnvironmentDTO, IUpdateEnvironmentDTO } from '../dtos/environment.dto';
 
 interface Environment {
   id: string;
@@ -10,9 +11,6 @@ interface Environment {
 
 const environments: Environment[] = [];
 let nextId = 1;
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null && !Array.isArray(value);
 
 export const environmentExists = (id: string): boolean =>
   environments.some((environment) => environment.id === id);
@@ -29,34 +27,7 @@ export class EnvironmentController {
   };
 
   public static createEnvironment = (req: Request, res: Response): void => {
-    const body: unknown = req.body;
-
-    if (!isRecord(body)) {
-      res.status(400).json({
-        success: false,
-        message: 'El cuerpo de la solicitud debe ser un objeto.'
-      });
-      return;
-    }
-
-    const { name, capacity, location, operational } = body;
-
-    if (
-      typeof name !== 'string' ||
-      name.trim().length === 0 ||
-      typeof capacity !== 'number' ||
-      !Number.isInteger(capacity) ||
-      capacity <= 0 ||
-      typeof location !== 'string' ||
-      location.trim().length === 0 ||
-      (operational !== undefined && typeof operational !== 'boolean')
-    ) {
-      res.status(400).json({
-        success: false,
-        message: 'Indica un nombre, capacidad positiva, ubicación y un estado operativo válido.'
-      });
-      return;
-    }
+    const { name, capacity, location, operational } = req.body as ICreateEnvironmentDTO;
 
     const environment: Environment = {
       id: String(nextId++),
@@ -86,33 +57,7 @@ export class EnvironmentController {
       return;
     }
 
-    const body: unknown = req.body;
-
-    if (!isRecord(body)) {
-      res.status(400).json({
-        success: false,
-        message: 'El cuerpo de la solicitud debe ser un objeto.'
-      });
-      return;
-    }
-
-    const fields = Object.keys(body);
-
-    if (
-      fields.length === 0 ||
-      fields.some((field) => field !== 'capacity' && field !== 'operational') ||
-      (body.capacity !== undefined &&
-        (typeof body.capacity !== 'number' ||
-          !Number.isInteger(body.capacity) ||
-          body.capacity <= 0)) ||
-      (body.operational !== undefined && typeof body.operational !== 'boolean')
-    ) {
-      res.status(404).json({
-        success: false,
-        message: 'Envía capacity como entero positivo y/o operational como valor booleano.'
-      });
-      return;
-    }
+    const body = req.body as IUpdateEnvironmentDTO;
 
     const currentEnvironment = environments[environmentIndex];
     if (!currentEnvironment) {

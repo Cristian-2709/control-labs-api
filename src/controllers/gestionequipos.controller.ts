@@ -1,7 +1,10 @@
 import type { Request, Response } from 'express';
+import type {
+  ICreateEquipmentDTO,
+  IUpdateEquipmentDTO,
+  TechnicalStatus
+} from '../dtos/equipment.dto';
 import { environmentExists } from './environment.controller';
-
-type TechnicalStatus = 'operational' | 'maintenance' | 'out_of_service';
 
 interface Equipment {
   id: string;
@@ -13,9 +16,6 @@ interface Equipment {
 
 const equipmentList: Equipment[] = [];
 let nextId = 1;
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null && !Array.isArray(value);
 
 const isTechnicalStatus = (value: unknown): value is TechnicalStatus =>
   value === 'operational' || value === 'maintenance' || value === 'out_of_service';
@@ -49,32 +49,7 @@ export class GestionEquiposController {
   };
 
   public static createEquipment = (req: Request, res: Response): void => {
-    const body: unknown = req.body;
-
-    if (!isRecord(body)) {
-      res.status(400).json({
-        success: false,
-        message: 'El cuerpo de la solicitud debe ser un objeto.'
-      });
-      return;
-    }
-
-    const { name, environmentId, technicalStatus, location } = body;
-
-    if (
-      typeof name !== 'string' ||
-      name.trim().length === 0 ||
-      typeof environmentId !== 'string' ||
-      environmentId.trim().length === 0 ||
-      (technicalStatus !== undefined && !isTechnicalStatus(technicalStatus)) ||
-      (location !== undefined && (typeof location !== 'string' || location.trim().length === 0))
-    ) {
-      res.status(400).json({
-        success: false,
-        message: 'Indica name, environmentId válido y, opcionalmente, technicalStatus y location válidos.'
-      });
-      return;
-    }
+    const { name, environmentId, technicalStatus, location } = req.body as ICreateEquipmentDTO;
 
     if (!environmentExists(environmentId)) {
       res.status(404).json({
@@ -112,30 +87,7 @@ export class GestionEquiposController {
       return;
     }
 
-    const body: unknown = req.body;
-
-    if (!isRecord(body)) {
-      res.status(400).json({
-        success: false,
-        message: 'El cuerpo de la solicitud debe ser un objeto.'
-      });
-      return;
-    }
-
-    const fields = Object.keys(body);
-    if (
-      fields.length === 0 ||
-      fields.some((field) => field !== 'technicalStatus' && field !== 'location') ||
-      (body.technicalStatus !== undefined && !isTechnicalStatus(body.technicalStatus)) ||
-      (body.location !== undefined &&
-        (typeof body.location !== 'string' || body.location.trim().length === 0))
-    ) {
-      res.status(400).json({
-        success: false,
-        message: 'Envía technicalStatus válido y/o una location no vacía.'
-      });
-      return;
-    }
+    const body = req.body as IUpdateEquipmentDTO;
 
     const currentEquipment = equipmentList[equipmentIndex];
     if (!currentEquipment) {
@@ -148,7 +100,7 @@ export class GestionEquiposController {
 
     const updates: Partial<Pick<Equipment, 'technicalStatus' | 'location'>> = {};
 
-    if (isTechnicalStatus(body.technicalStatus)) {
+    if (body.technicalStatus !== undefined) {
       updates.technicalStatus = body.technicalStatus;
     }
 

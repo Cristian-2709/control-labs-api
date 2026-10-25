@@ -1,9 +1,12 @@
 import type { Request, Response } from 'express';
+import type {
+  ICreateIncidentDTO,
+  IUpdateIncidentDTO,
+  IncidentPriority,
+  IncidentStatus
+} from '../dtos/incident.dto';
 import { environmentExists } from './environment.controller';
 import { equipmentExists } from './gestionequipos.controller';
-
-type IncidentStatus = 'pending' | 'in_progress' | 'resolved';
-type IncidentPriority = 'critical' | 'normal';
 
 interface Incident {
   id: string;
@@ -17,12 +20,6 @@ interface Incident {
 
 const incidents: Incident[] = [];
 let nextId = 1;
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null && !Array.isArray(value);
-
-const isIncidentStatus = (value: unknown): value is IncidentStatus =>
-  value === 'pending' || value === 'in_progress' || value === 'resolved';
 
 const isIncidentPriority = (value: unknown): value is IncidentPriority =>
   value === 'critical' || value === 'normal';
@@ -39,34 +36,9 @@ export class GestionNovedadesController {
   };
 
   public static createIncident = (req: Request, res: Response): void => {
-    const body: unknown = req.body;
-
-    if (!isRecord(body)) {
-      res.status(400).json({
-        success: false,
-        message: 'El cuerpo de la solicitud debe ser un objeto.'
-      });
-      return;
-    }
-
-    const { description, equipmentId, environmentId, priority } = body;
-    const hasEquipmentId = typeof equipmentId === 'string' && equipmentId.trim().length > 0;
-    const hasEnvironmentId = typeof environmentId === 'string' && environmentId.trim().length > 0;
-
-    if (
-      typeof description !== 'string' ||
-      description.trim().length === 0 ||
-      hasEquipmentId === hasEnvironmentId ||
-      (equipmentId !== undefined && !hasEquipmentId) ||
-      (environmentId !== undefined && !hasEnvironmentId) ||
-      (priority !== undefined && !isIncidentPriority(priority))
-    ) {
-      res.status(400).json({
-        success: false,
-        message: 'Indica una descripción, exactamente un equipmentId o environmentId válido y una prioridad critical o normal.'
-      });
-      return;
-    }
+    const { description, equipmentId, environmentId, priority } = req.body as ICreateIncidentDTO;
+    const hasEquipmentId = equipmentId !== undefined;
+    const hasEnvironmentId = environmentId !== undefined;
 
     if (hasEquipmentId && !equipmentExists(equipmentId)) {
       res.status(404).json({
@@ -114,25 +86,7 @@ export class GestionNovedadesController {
       return;
     }
 
-    const body: unknown = req.body;
-    if (!isRecord(body)) {
-      res.status(400).json({
-        success: false,
-        message: 'El cuerpo de la solicitud debe ser un objeto.'
-      });
-      return;
-    }
-
-    if (
-      Object.keys(body).length !== 1 ||
-      !isIncidentStatus(body.status)
-    ) {
-      res.status(400).json({
-        success: false,
-        message: 'Envía únicamente status: pending, in_progress o resolved.'
-      });
-      return;
-    }
+    const body = req.body as IUpdateIncidentDTO;
 
     const currentIncident = incidents[incidentIndex];
     if (!currentIncident) {
